@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sairberdarah</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<!-- Font Awesome untuk ikon sosial media -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<style>
+body {margin:0;font-family:'Poppins',sans-serif;background:#f0f2f5;color:#333;}
+header {display:flex;justify-content:space-between;align-items:center;padding:15px 30px;background:linear-gradient(90deg,#4CAF50,#81C784);color:white;position:sticky;top:0;z-index:10;}
+header h1 {margin:0;font-size:1.8rem;flex:1;text-align:center;}
+header button {background:white;color:#4CAF50;border:none;padding:10px 20px;border-radius:10px;font-weight:600;cursor:pointer;transition:.3s;}
+header button:hover {background:#e6e6e6;}
+.social-icons a {color:white;margin-right:12px;font-size:1.3rem;transition:.3s;}
+.social-icons a:hover {color:#ffd700;}
+
+#puisiList {max-width:800px;margin:30px auto;display:flex;flex-direction:column;gap:20px;padding:0 20px;}
+.puisi-card {position:relative;background:white;padding:25px;border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,0.1);transition: transform .2s, box-shadow .2s;}
+.puisi-card:hover {transform: translateY(-3px); box-shadow:0 12px 25px rgba(0,0,0,0.15);}
+.puisi-card h2 {margin:0 0 10px;color:#4CAF50;}
+.puisi-card p {margin:5px 0;line-height:1.5;}
+.puisi-meta {font-size:0.9rem;color:#666;margin-top:10px;}
+
+/* Menu titik tiga */
+.menu-btn {position:absolute; top:15px; right:15px; cursor:pointer; font-weight:bold; font-size:20px;}
+.menu-content {display:none; position:absolute; top:30px; right:15px; background:white; border:1px solid #ccc; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+.menu-content button {display:block; padding:8px 15px; width:100%; background:none; border:none; text-align:left; cursor:pointer;}
+.menu-content button:hover {background:#f0f0f0;}
+
+/* Form overlay */
+#formOverlay {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:100;}
+#puisiForm {background:white; padding:30px; border-radius:15px; max-width:400px; width:90%; display:flex; flex-direction:column;}
+#puisiForm input,#puisiForm textarea,#puisiForm button{width:100%; padding:12px; margin:8px 0; border-radius:8px; border:1px solid #ccc; font-size:1rem;}
+#puisiForm button{background:#4CAF50;color:white;border:none; cursor:pointer;font-weight:600;}
+#puisiForm button:hover{background:#45a049;}
+#puisiForm #cancelBtn{background:#f44336;margin-top:5px;}
+#puisiForm #cancelBtn:hover{background:#e53935;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="social-icons">
+    <a href="https://instagram.com/fullocs" target="_blank"><i class="fab fa-instagram"></i></a>
+    <a href="https://facebook.com/akunmu" target="_blank"><i class="fab fa-facebook"></i></a>
+    <a href="https://tiktok.com/@akunmu" target="_blank"><i class="fab fa-tiktok"></i></a>
+  </div>
+  <h1>gemuruh puisi</h1>
+  <button id="openFormBtn">sumbangpuisi</button>
+</header>
+
+<div id="puisiList"></div>
+
+<!-- Form Overlay -->
+<div id="formOverlay">
+  <form id="puisiForm">
+    <h2 id="formTitle">sumbangpuisi</h2>
+    <input type="hidden" id="puisiId">
+    <input type="text" id="penulis" placeholder="Nama Penulis" required>
+    <input type="text" id="judul" placeholder="Judul Puisi" required>
+    <textarea id="isi" placeholder="Isi Puisi" rows="5" required></textarea>
+    <button type="submit" id="submitBtn">Simpan</button>
+    <button type="button" id="cancelBtn">Batal</button>
+  </form>
+</div>
+
+<script type="module">
+const SUPABASE_URL = "https://toyjbkejuvgazrgaqjis.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRveWpia2VqdXZnYXpyZ2FxamlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDM3NTEsImV4cCI6MjA3NTA3OTc1MX0.C2qqanDf0j0WrtvbrUtfpbkF7aMIv46dnnWm6A5a-QU";
+
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+const supabase = createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const puisiList = document.getElementById('puisiList');
+const formOverlay = document.getElementById('formOverlay');
+const openFormBtn = document.getElementById('openFormBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const form = document.getElementById('puisiForm');
+const formTitle = document.getElementById('formTitle');
+const submitBtn = document.getElementById('submitBtn');
+const puisiIdInput = document.getElementById('puisiId');
+
+openFormBtn.addEventListener('click', () => {
+  formTitle.textContent = "Tambah Puisi";
+  submitBtn.textContent = "Simpan";
+  puisiIdInput.value = "";
+  form.reset();
+  formOverlay.style.display = 'flex';
+});
+cancelBtn.addEventListener('click', () => formOverlay.style.display = 'none');
+
+function formatTanggal(ts){
+  const date = new Date(ts);
+  return date.toLocaleString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+
+async function fetchPuisi(){
+  const { data,error } = await supabase.from('puisi').select('*').order('tanggal',{ascending:false});
+  if(error) return console.error(error);
+  puisiList.innerHTML = '';
+  data.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'puisi-card';
+    card.innerHTML = `
+      <h2>${p.judul}</h2>
+      <p>${p.isi}</p>
+      <div class="puisi-meta">Penulis: ${p.penulis} | Tanggal: ${formatTanggal(p.tanggal)}</div>
+      <div class="menu-btn">⋮
+        <div class="menu-content">
+          <button class="edit-btn">Edit</button>
+          <button class="delete-btn">Hapus</button>
+        </div>
+      </div>
+    `;
+    puisiList.appendChild(card);
+
+    // Menu toggle
+    const menuBtn = card.querySelector('.menu-btn');
+    const menuContent = card.querySelector('.menu-content');
+    menuBtn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      menuContent.style.display = menuContent.style.display==='block'?'none':'block';
+    });
+    document.addEventListener('click',()=> menuContent.style.display='none');
+
+    // Edit
+    card.querySelector('.edit-btn').addEventListener('click',()=>{
+      formTitle.textContent="Edit Puisi";
+      submitBtn.textContent="Update";
+      puisiIdInput.value = p.id;
+      document.getElementById('penulis').value = p.penulis;
+      document.getElementById('judul').value = p.judul;
+      document.getElementById('isi').value = p.isi;
+      formOverlay.style.display='flex';
+    });
+
+    // Delete
+    card.querySelector('.delete-btn').addEventListener('click', async()=>{
+      if(confirm("Hapus puisi ini?")){
+        const {error} = await supabase.from('puisi').delete().eq('id',p.id);
+        if(error) alert("Gagal hapus: "+error.message);
+        else fetchPuisi();
+      }
+    });
+  });
+}
+
+form.addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  const penulis = document.getElementById('penulis').value;
+  const judul = document.getElementById('judul').value;
+  const isi = document.getElementById('isi').value;
+  const id = puisiIdInput.value;
+
+  if(id){ // update
+    const {error} = await supabase.from('puisi').update({penulis,judul,isi}).eq('id',id);
+    if(error) alert("Gagal update: "+error.message);
+    else fetchPuisi();
+  } else { // insert
+    const {error} = await supabase.from('puisi').insert([{penulis,judul,isi}]);
+    if(error) alert("Gagal simpan: "+error.message);
+    else fetchPuisi();
+  }
+
+  formOverlay.style.display='none';
+  form.reset();
+});
+
+// Load semua puisi saat halaman dibuka
+fetchPuisi();
+</script>
+
+</body>
+</html>
