@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>gabutaja</title>
+<title>cacamadureh</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
@@ -72,8 +72,8 @@ header button:hover {background:#e6e6e6;}
     <a href="https://facebook.com/akunmu" target="_blank"><i class="fab fa-facebook"></i></a>
     <a href="https://tiktok.com/@akunmu" target="_blank"><i class="fab fa-tiktok"></i></a>
   </div>
-  <h1>Daftar Puisi</h1>
-  <button id="openFormBtn">Input Puisi</button>
+  <h1>kata kata madureh</h1>
+  <button id="openFormBtn">sombeng kata2</button>
 </header>
 
 <div id="puisiList"></div>
@@ -85,13 +85,13 @@ header button:hover {background:#e6e6e6;}
 <!-- Form Overlay -->
 <div id="formOverlay">
   <form id="puisiForm">
-    <h2 id="formTitle">Tambah Puisi</h2>
+    <h2 id="formTitle">tamba kata2</h2>
     <input type="hidden" id="puisiId">
     <input type="text" id="penulis" placeholder="Nama Penulis" required>
     <input type="text" id="judul" placeholder="Judul Puisi" required>
     <textarea id="isi" placeholder="Isi Puisi" rows="5" required></textarea>
-    <button type="submit" id="submitBtn">Simpan</button>
-    <button type="button" id="cancelBtn">Batal</button>
+    <button type="submit" id="submitBtn">Sempen</button>
+    <button type="button" id="cancelBtn">Borong</button>
   </form>
 </div>
 
@@ -117,8 +117,8 @@ let page = 0;
 const limit = 10;
 
 openFormBtn.addEventListener('click', () => {
-  formTitle.textContent = "Tambah Puisi";
-  submitBtn.textContent = "Simpan";
+  formTitle.textContent = "Tamba kata-kata";
+  submitBtn.textContent = "Sempen";
   puisiIdInput.value = "";
   form.reset();
   formOverlay.style.display = 'flex';
@@ -164,7 +164,7 @@ async function fetchPuisi(){
 
     // Edit
     card.querySelector('.edit-btn').addEventListener('click',()=>{
-      formTitle.textContent="Edit Puisi";
+      formTitle.textContent="Edit katakata";
       submitBtn.textContent="Update";
       puisiIdInput.value = p.id;
       document.getElementById('penulis').value = p.penulis;
@@ -220,4 +220,3 @@ fetchPuisi();
 </script>
 </body>
 </html>
-
