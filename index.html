@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>sairberdarah</title>
+<title>Puisi Elegan Modern Responsive</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<!-- Font Awesome untuk ikon sosial media -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
 <style>
+/* Global */
 body {margin:0;font-family:'Poppins',sans-serif;background:#f0f2f5;color:#333;}
+a{text-decoration:none;}
 header {display:flex;justify-content:space-between;align-items:center;padding:15px 30px;background:linear-gradient(90deg,#4CAF50,#81C784);color:white;position:sticky;top:0;z-index:10;}
 header h1 {margin:0;font-size:1.8rem;flex:1;text-align:center;}
 header button {background:white;color:#4CAF50;border:none;padding:10px 20px;border-radius:10px;font-weight:600;cursor:pointer;transition:.3s;}
@@ -17,6 +18,7 @@ header button:hover {background:#e6e6e6;}
 .social-icons a {color:white;margin-right:12px;font-size:1.3rem;transition:.3s;}
 .social-icons a:hover {color:#ffd700;}
 
+/* Puisi List */
 #puisiList {max-width:800px;margin:30px auto;display:flex;flex-direction:column;gap:20px;padding:0 20px;}
 .puisi-card {position:relative;background:white;padding:25px;border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,0.1);transition: transform .2s, box-shadow .2s;}
 .puisi-card:hover {transform: translateY(-3px); box-shadow:0 12px 25px rgba(0,0,0,0.15);}
@@ -38,26 +40,52 @@ header button:hover {background:#e6e6e6;}
 #puisiForm button:hover{background:#45a049;}
 #puisiForm #cancelBtn{background:#f44336;margin-top:5px;}
 #puisiForm #cancelBtn:hover{background:#e53935;}
+
+/* Pagination */
+#pagination {display:flex; justify-content:center; gap:10px; margin:20px 0;}
+#pagination button{padding:8px 15px;border:none;border-radius:8px;background:#4CAF50;color:white;font-weight:600;cursor:pointer;transition:.3s;}
+#pagination button:hover{background:#45a049;}
+#pagination button:disabled{background:#ccc;cursor:default;}
+
+/* Responsive */
+@media (max-width:768px){
+  header {flex-direction:column; align-items:center; padding:10px;}
+  header h1 {font-size:1.5rem; margin:10px 0;}
+  #puisiList {padding:0 10px;}
+  #puisiForm {width:95%; padding:20px;}
+  header button {width:100%; margin-top:10px;}
+  .social-icons a {margin-right:8px; font-size:1.2rem;}
+  .puisi-card {padding:20px;}
+}
+@media (max-width:480px){
+  header h1 {font-size:1.3rem;}
+  .puisi-card {padding:15px;}
+  #puisiForm input,#puisiForm textarea,#puisiForm button{font-size:0.95rem;}
+}
 </style>
 </head>
 <body>
 
 <header>
   <div class="social-icons">
-    <a href="https://instagram.com/fullocs" target="_blank"><i class="fab fa-instagram"></i></a>
+    <a href="https://instagram.com/akunmu" target="_blank"><i class="fab fa-instagram"></i></a>
     <a href="https://facebook.com/akunmu" target="_blank"><i class="fab fa-facebook"></i></a>
     <a href="https://tiktok.com/@akunmu" target="_blank"><i class="fab fa-tiktok"></i></a>
   </div>
-  <h1>gemuruh puisi</h1>
-  <button id="openFormBtn">sumbangpuisi</button>
+  <h1>Daftar Puisi</h1>
+  <button id="openFormBtn">Input Puisi</button>
 </header>
 
 <div id="puisiList"></div>
+<div id="pagination">
+  <button id="prevBtn">Previous</button>
+  <button id="nextBtn">Next</button>
+</div>
 
 <!-- Form Overlay -->
 <div id="formOverlay">
   <form id="puisiForm">
-    <h2 id="formTitle">sumbangpuisi</h2>
+    <h2 id="formTitle">Tambah Puisi</h2>
     <input type="hidden" id="puisiId">
     <input type="text" id="penulis" placeholder="Nama Penulis" required>
     <input type="text" id="judul" placeholder="Judul Puisi" required>
@@ -83,6 +111,11 @@ const formTitle = document.getElementById('formTitle');
 const submitBtn = document.getElementById('submitBtn');
 const puisiIdInput = document.getElementById('puisiId');
 
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+let page = 0;
+const limit = 10;
+
 openFormBtn.addEventListener('click', () => {
   formTitle.textContent = "Tambah Puisi";
   submitBtn.textContent = "Simpan";
@@ -98,8 +131,11 @@ function formatTanggal(ts){
 }
 
 async function fetchPuisi(){
-  const { data,error } = await supabase.from('puisi').select('*').order('tanggal',{ascending:false});
+  const start = page * limit;
+  const end = start + limit -1;
+  const { data,error } = await supabase.from('puisi').select('*').order('tanggal',{ascending:false}).range(start,end);
   if(error) return console.error(error);
+
   puisiList.innerHTML = '';
   data.forEach(p => {
     const card = document.createElement('div');
@@ -146,7 +182,18 @@ async function fetchPuisi(){
       }
     });
   });
+
+  // Pagination buttons
+  prevBtn.disabled = page === 0;
+  nextBtn.disabled = data.length < limit;
 }
+
+prevBtn.addEventListener('click', ()=>{
+  if(page>0){ page--; fetchPuisi(); }
+});
+nextBtn.addEventListener('click', ()=>{
+  page++; fetchPuisi();
+});
 
 form.addEventListener('submit', async(e)=>{
   e.preventDefault();
@@ -158,20 +205,18 @@ form.addEventListener('submit', async(e)=>{
   if(id){ // update
     const {error} = await supabase.from('puisi').update({penulis,judul,isi}).eq('id',id);
     if(error) alert("Gagal update: "+error.message);
-    else fetchPuisi();
   } else { // insert
     const {error} = await supabase.from('puisi').insert([{penulis,judul,isi}]);
     if(error) alert("Gagal simpan: "+error.message);
-    else fetchPuisi();
   }
 
   formOverlay.style.display='none';
   form.reset();
+  fetchPuisi();
 });
 
-// Load semua puisi saat halaman dibuka
+// Load awal
 fetchPuisi();
 </script>
-
 </body>
 </html>
